@@ -1,0 +1,17 @@
+{
+  "name": "daydeck",
+  "description": "Plan and pace your week on Daydeck, the macOS wallpaper timeline — skill + local MCP connector",
+  "owner": {
+    "name": "Tomislav Krnic",
+    "url": "https://daydeck.krnic.be"
+  },
+  "plugins": [
+    {
+      "name": "daydeck",
+      "source": "./claude-plugin/daydeck",
+      "description": "Plan and pace your week on Daydeck, the macOS wallpaper timeline — skill + local MCP connector",
+      "version": "0.1.0",
+      "keywords": ["daydeck", "planning", "pacing", "wallpaper", "macos", "mcp"]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "name": "daydeck-mcp",
+  "version": "0.1.0",
+  "description": "Local MCP server (stdio) that lets Claude Desktop / Claude Code / Cursor read and edit the Daydeck plan.",
+  "type": "module",
+  "bin": {
+    "daydeck-mcp": "./server.js"
+  },
+  "main": "server.js",
+  "files": [
+    "server.js",
+    "lib.js",
+    "README.md",
+    "manifest.json",
+    "SKILL.md"
+  ],
+  "scripts": {
+    "test": "node --test test/",
+    "bundle": "esbuild server.js --bundle --platform=node --format=esm --target=node18 --outfile=dist/server.bundle.mjs --banner:js=\"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);\"",
+    "sync-plugin": "npm run bundle && cp dist/server.bundle.mjs ../claude-plugin/daydeck/mcp/server.js && cp SKILL.md ../claude-plugin/daydeck/mcp/SKILL.md"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  },
+  "license": "MIT"
+}

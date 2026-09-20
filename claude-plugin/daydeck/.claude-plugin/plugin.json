@@ -1,0 +1,10 @@
+{
+  "name": "daydeck",
+  "version": "0.1.0",
+  "description": "Plan and pace your week on Daydeck, the macOS wallpaper timeline — skill + local MCP connector",
+  "author": {
+    "name": "Tomislav Krnic"
+  },
+  "homepage": "https://daydeck.krnic.be",
+  "license": "MIT"
+}
