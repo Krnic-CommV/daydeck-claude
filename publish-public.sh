@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # publish-public.sh — sync integrations/ from the private Daydeck app repo into
-# the public mirror repo (tomislavkrnic/daydeck-claude, MIT-licensed).
+# the public mirror repo (Krnic-CommV/daydeck-claude, MIT-licensed).
 #
 # The private repo intentionally has NO .claude-plugin/marketplace.json at its
 # root: a marketplace manifest can't be installed from a private repo (`/plugin
@@ -123,7 +123,7 @@ and double-click it.
 ### Claude Code
 
 ```
-/plugin marketplace add tomislavkrnic/daydeck-claude
+/plugin marketplace add Krnic-CommV/daydeck-claude
 /plugin install daydeck@daydeck
 ```
 

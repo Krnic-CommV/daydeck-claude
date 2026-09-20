@@ -3,7 +3,7 @@
 ## Install
 
 ```
-/plugin marketplace add tomislavkrnic/daydeck-claude
+/plugin marketplace add Krnic-CommV/daydeck-claude
 /plugin install daydeck@daydeck
 ```
 
