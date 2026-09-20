@@ -46,6 +46,43 @@ export function requireDataPath() {
 }
 
 // ---------------------------------------------------------------------
+// Agent identification (who is writing) — see README "Who wrote what".
+// ---------------------------------------------------------------------
+
+const KNOWN_AGENTS = ['claude', 'cursor', 'windsurf'];
+
+/**
+ * Map an MCP client's clientInfo.name (e.g. "claude-ai", "Cursor", "Windsurf")
+ * to the short agent id stamped into `source` / `settings.agent.name`.
+ * Lowercased; anything containing a known agent's name maps to that agent;
+ * otherwise the first word, truncated to 32 chars; falls back to "claude"
+ * for anything blank or unrecognizable, since Claude Desktop/Code are the
+ * primary clients.
+ */
+export function mapAgentName(rawName) {
+  if (typeof rawName !== 'string') return 'claude';
+  const lower = rawName.trim().toLowerCase();
+  if (!lower) return 'claude';
+  for (const known of KNOWN_AGENTS) {
+    if (lower.includes(known)) return known;
+  }
+  const firstWord = lower.split(/[^a-z0-9]+/).find(Boolean);
+  return firstWord ? firstWord.slice(0, 32) : 'claude';
+}
+
+let currentAgentName = 'claude';
+
+/** Called once by server.js when the SDK exposes the connected client's clientInfo. */
+export function setAgentName(rawName) {
+  currentAgentName = mapAgentName(rawName);
+}
+
+/** The agent name currently stamped into `source` / `settings.agent.name` on writes. */
+export function getAgentName() {
+  return currentAgentName;
+}
+
+// ---------------------------------------------------------------------
 // Low-level read / atomic write
 // ---------------------------------------------------------------------
 
@@ -93,6 +130,18 @@ function verifyDelayMs() {
 }
 
 /**
+ * Stamp `settings.agent = { name, at }` (current agent, ISO-8601 UTC now)
+ * onto every write, preserving any other settings keys already there.
+ */
+function stampAgent(data) {
+  data.settings = {
+    ...(data.settings || {}),
+    agent: { name: getAgentName(), at: new Date().toISOString() },
+  };
+  return data;
+}
+
+/**
  * read -> modify -> write atomically -> wait -> re-read -> verify.
  * If the change is missing, re-apply once (re-reading fresh data first,
  * in case Daydeck's editor saved something else in the meantime) and
@@ -102,17 +151,20 @@ function verifyDelayMs() {
  * whatever bookkeeping `verifier` / the caller needs) and may be called
  * twice, so it should be safe to re-run against a freshly re-read document.
  * `verifier(data, meta)` returns true if the change is present.
+ *
+ * Every write stamps `settings.agent` (see stampAgent) so the app can show
+ * who last touched the plan and when.
  */
 async function transactionalWrite(dataPath, mutator, verifier) {
   const attempt1 = mutator(readData(dataPath));
-  writeAtomic(dataPath, attempt1.data);
+  writeAtomic(dataPath, stampAgent(attempt1.data));
   await sleep(verifyDelayMs());
   if (verifier(readData(dataPath), attempt1.meta)) {
     return { meta: attempt1.meta, reapplied: false, failed: false };
   }
 
   const attempt2 = mutator(readData(dataPath));
-  writeAtomic(dataPath, attempt2.data);
+  writeAtomic(dataPath, stampAgent(attempt2.data));
   const ok = verifier(readData(dataPath), attempt2.meta);
   return { meta: attempt2.meta, reapplied: true, failed: !ok };
 }
@@ -408,6 +460,10 @@ function applyTaskFields(existing, params) {
     }
   }
 
+  // Every task this connector creates or touches is stamped with who wrote it,
+  // so the app can show "added by Claude" / "Claude updated your plan N min ago".
+  t.source = getAgentName();
+
   return t;
 }
 
@@ -479,6 +535,10 @@ export function getPlan(params = {}, opts = {}) {
       tasks: p.tasks,
     })),
   };
+
+  if (data.settings && data.settings.agent) {
+    result.settings = { agent: data.settings.agent };
+  }
 
   if (Number.isFinite(days) && days > 0) {
     result.window = { from: today, to: addDaysStr(today, days - 1), days };

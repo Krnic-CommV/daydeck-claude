@@ -21463,6 +21463,24 @@ function requireDataPath() {
   if (!p || !fs.existsSync(p)) throw new Error(DATA_NOT_FOUND_MESSAGE);
   return p;
 }
+var KNOWN_AGENTS = ["claude", "cursor", "windsurf"];
+function mapAgentName(rawName) {
+  if (typeof rawName !== "string") return "claude";
+  const lower = rawName.trim().toLowerCase();
+  if (!lower) return "claude";
+  for (const known of KNOWN_AGENTS) {
+    if (lower.includes(known)) return known;
+  }
+  const firstWord = lower.split(/[^a-z0-9]+/).find(Boolean);
+  return firstWord ? firstWord.slice(0, 32) : "claude";
+}
+var currentAgentName = "claude";
+function setAgentName(rawName) {
+  currentAgentName = mapAgentName(rawName);
+}
+function getAgentName() {
+  return currentAgentName;
+}
 function readData(dataPath) {
   const raw = fs.readFileSync(dataPath, "utf8");
   let parsed;
@@ -21496,15 +21514,22 @@ function verifyDelayMs() {
   }
   return 1e3;
 }
+function stampAgent(data) {
+  data.settings = {
+    ...data.settings || {},
+    agent: { name: getAgentName(), at: (/* @__PURE__ */ new Date()).toISOString() }
+  };
+  return data;
+}
 async function transactionalWrite(dataPath, mutator, verifier) {
   const attempt1 = mutator(readData(dataPath));
-  writeAtomic(dataPath, attempt1.data);
+  writeAtomic(dataPath, stampAgent(attempt1.data));
   await sleep(verifyDelayMs());
   if (verifier(readData(dataPath), attempt1.meta)) {
     return { meta: attempt1.meta, reapplied: false, failed: false };
   }
   const attempt2 = mutator(readData(dataPath));
-  writeAtomic(dataPath, attempt2.data);
+  writeAtomic(dataPath, stampAgent(attempt2.data));
   const ok = verifier(readData(dataPath), attempt2.meta);
   return { meta: attempt2.meta, reapplied: true, failed: !ok };
 }
@@ -21729,6 +21754,7 @@ function applyTaskFields(existing, params) {
       }
     }
   }
+  t.source = getAgentName();
   return t;
 }
 function freeWarningFor(index) {
@@ -21785,6 +21811,9 @@ function getPlan(params = {}, opts = {}) {
       tasks: p.tasks
     }))
   };
+  if (data.settings && data.settings.agent) {
+    result.settings = { agent: data.settings.agent };
+  }
   if (Number.isFinite(days) && days > 0) {
     result.window = { from: today, to: addDaysStr(today, days - 1), days };
     result.byDay = buildByDay(data, today, days);
@@ -22164,6 +22193,10 @@ function loadSkill() {
   }
 }
 var server = new McpServer({ name: "daydeck-mcp", version: "0.1.0" }, { instructions: loadSkill() });
+server.server.oninitialized = () => {
+  const clientInfo = server.server.getClientVersion();
+  setAgentName(clientInfo && clientInfo.name);
+};
 function textResult(text) {
   return { content: [{ type: "text", text }] };
 }

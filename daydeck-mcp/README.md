@@ -81,6 +81,19 @@ directory), then re-verified a second later in case Daydeck's own editor
 saved over the change during its ~400ms debounce; a single retry is applied
 if that happens, and the tool result says so if it still didn't stick.
 
+## Who wrote what
+
+Every task this server creates or updates is stamped with `"source": "<agent>"`,
+and every write (block or project add/update/remove, status change) also
+stamps top-level `settings.agent = { "name": "<agent>", "at": "<ISO-8601 UTC>" }`
+on the data file, preserving any other `settings` keys. `<agent>` is derived
+from the connected MCP client's `clientInfo.name` at connect time (e.g.
+`claude`, `cursor`, `windsurf`), falling back to `claude` when the client is
+unrecognized. This is how the Daydeck app can show attribution like "added by
+Claude" on a task or "Claude updated your plan 4 min ago" without guessing —
+`get_plan` returns both `source` (per task, when present) and the top-level
+`settings.agent` (when present).
+
 ## Free plan
 
 Daydeck Free only *displays* the first 2 projects (the app enforces this).

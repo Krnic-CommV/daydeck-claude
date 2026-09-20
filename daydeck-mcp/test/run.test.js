@@ -398,6 +398,90 @@ test('get_plan returns today, projects with tasks, and a day-by-day window', asy
 });
 
 // -----------------------------------------------------------------------
+// agent attribution: mapAgentName, source on tasks, settings.agent on writes
+// -----------------------------------------------------------------------
+
+test('mapAgentName maps client names to short agent ids', () => {
+  assert.equal(lib.mapAgentName('claude-ai'), 'claude');
+  assert.equal(lib.mapAgentName('Claude Code'), 'claude');
+  assert.equal(lib.mapAgentName('Cursor'), 'cursor');
+  assert.equal(lib.mapAgentName('Windsurf'), 'windsurf');
+  assert.equal(lib.mapAgentName('SomeOtherTool 2.0'), 'someothertool');
+  assert.equal(lib.mapAgentName(undefined), 'claude');
+});
+
+test('add_block and update_block stamp the task with the current agent as source', async (t) => {
+  lib.setAgentName('Cursor');
+  t.after(() => lib.setAgentName('claude'));
+
+  const file = useData(t, { settings: {}, projects: [project()] });
+  const start = lib.todayStr();
+  const end = lib.addDaysStr(start, 2);
+  const added = await lib.addBlock({ project: 'Roko', label: 'beta', start, end });
+  let raw = readRaw(file);
+  let task = raw.projects[0].tasks.find((tk) => tk.id === added.taskId);
+  assert.equal(task.source, 'cursor');
+
+  lib.setAgentName('Claude Desktop');
+  await lib.updateBlock({ id: added.taskId, label: 'beta v2' });
+  raw = readRaw(file);
+  task = raw.projects[0].tasks.find((tk) => tk.id === added.taskId);
+  assert.equal(task.source, 'claude');
+});
+
+test('every write kind stamps settings.agent with name and an ISO timestamp, preserving other settings keys', async (t) => {
+  lib.setAgentName('Windsurf');
+  t.after(() => lib.setAgentName('claude'));
+
+  const start = lib.todayStr();
+  const end = lib.addDaysStr(start, 2);
+  const file = useData(t, {
+    settings: { pastDays: 7 },
+    projects: [project({ tasks: [{ id: 't1', label: 'beta', start, end }] })],
+  });
+
+  const assertStamped = () => {
+    const raw = readRaw(file);
+    assert.equal(raw.settings.agent.name, 'windsurf');
+    assert.match(raw.settings.agent.at, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+    assert.equal(raw.settings.pastDays, 7); // other settings keys preserved
+  };
+
+  await lib.addProject({ name: 'Second' });
+  assertStamped();
+
+  const added = await lib.addBlock({ project: 'Roko', label: 'gamma', start, end });
+  assertStamped();
+
+  await lib.updateBlock({ id: added.taskId, label: 'gamma v2' });
+  assertStamped();
+
+  await lib.setProjectStatus({ project: 'Roko', status: 'draft' });
+  assertStamped();
+
+  await lib.removeBlock({ id: added.taskId });
+  assertStamped();
+
+  await lib.removeProject({ project: 'Second' });
+  assertStamped();
+});
+
+test('get_plan surfaces settings.agent and per-task source when present', async (t) => {
+  lib.setAgentName('claude-ai');
+  t.after(() => lib.setAgentName('claude'));
+
+  const start = lib.todayStr();
+  const end = lib.addDaysStr(start, 2);
+  useData(t, { settings: {}, projects: [project()] });
+  const added = await lib.addBlock({ project: 'Roko', label: 'beta', start, end });
+
+  const plan = lib.getPlan({ days: 3 });
+  assert.equal(plan.settings.agent.name, 'claude');
+  const task = plan.projects[0].tasks.find((tk) => tk.id === added.taskId);
+  assert.equal(task.source, 'claude');
+});
+
+// -----------------------------------------------------------------------
 // missing data file
 // -----------------------------------------------------------------------
 

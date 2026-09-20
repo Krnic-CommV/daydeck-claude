@@ -17,6 +17,7 @@ import {
   removeProject,
   setProjectStatus,
   checkPacing,
+  setAgentName,
   WEEKLY_PLANNING_PROMPT,
 } from './lib.js';
 
@@ -34,6 +35,18 @@ function loadSkill() {
   } catch { return undefined; }
 }
 const server = new McpServer({ name: 'daydeck-mcp', version: '0.1.0' }, { instructions: loadSkill() });
+
+// The SDK's low-level Server (McpServer wraps it as `.server`) records the
+// client's clientInfo (name/version) while handling the "initialize" request,
+// and fires oninitialized once the client confirms via the "initialized"
+// notification — the first point at which getClientVersion() is reliably
+// populated for every transport. We use that client name (e.g. "claude-ai",
+// "Claude Code", "Cursor") to attribute writes: see lib.js setAgentName /
+// mapAgentName and the README's "Who wrote what" section.
+server.server.oninitialized = () => {
+  const clientInfo = server.server.getClientVersion();
+  setAgentName(clientInfo && clientInfo.name);
+};
 
 function textResult(text) {
   return { content: [{ type: 'text', text }] };
