@@ -136,6 +136,14 @@ recurring tasks don't count as load unless a rule says otherwise.
 Each violation reports `{ rule, date, blockIds, message, suggestion }` with a
 concrete suggestion (a specific date to move to, or how to split a block).
 
+## Privacy
+
+This connector makes no network calls of its own. It reads and writes exactly
+one local file — the same `data.json` the Daydeck app uses (see "Data file"
+above). No analytics, telemetry, or usage tracking of any kind, and nothing
+is shared with any third party. Data never leaves your Mac through this
+connector. Questions: daydeck@krnic.be.
+
 ## Tests
 
 ```bash

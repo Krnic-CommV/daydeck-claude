@@ -22248,28 +22248,33 @@ var weeklyField = external_exports.array(external_exports.number().int().min(0).
 server.registerTool(
   "get_plan",
   {
+    title: "Get plan",
     description: "Read the current Daydeck plan: today's date and every project with its tasks (fixed blocks, ongoing bars, weekly/monthly recurrences), ids included. Pass `days` to also get a day-by-day breakdown of what is visible on each date from today through today+days-1 (default 14). Read-only.",
     inputSchema: {
       days: external_exports.number().int().min(1).max(365).optional().describe("how many days ahead to expand into a day-by-day view (default 14)")
-    }
+    },
+    annotations: { title: "Get plan", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
   },
   tool((args) => getPlan(args))
 );
 server.registerTool(
   "add_project",
   {
+    title: "Add project",
     description: "Create a new project (lane) in the Daydeck plan. Refuses to create a duplicate if a project with the same name (case-insensitive) already exists, and returns that project's id instead. Daydeck Free only displays the first 2 projects, so creating a 3rd+ still writes it but comes back with a warning.",
     inputSchema: {
       name: external_exports.string().min(1).describe('project name, e.g. "Roko"'),
       color: external_exports.string().regex(/^#[0-9a-fA-F]{6}$/).optional().describe("hex color #RRGGBB; omit to auto-pick from the palette"),
       status: statusField.optional().describe("active (default), draft, or off")
-    }
+    },
+    annotations: { title: "Add project", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false }
   },
   writeTool((args) => addProject(args))
 );
 server.registerTool(
   "add_block",
   {
+    title: "Add block",
     description: "Add one task (block) to a project: a fixed date range, an ongoing bar, or a weekly/monthly recurrence. Pass exactly one of end / ongoing / weekly / monthly. If the named project does not exist yet it is created. Automatically runs check_pacing afterwards and includes any new violations in the result.",
     inputSchema: {
       project: external_exports.string().min(1).describe("project name or id; created if it does not exist"),
@@ -22282,13 +22287,15 @@ server.registerTool(
       from: dateField.optional().describe("optional lower bound for a weekly/monthly recurrence"),
       to: dateField.optional().describe("optional upper bound for a weekly/monthly recurrence"),
       note: external_exports.string().max(180).optional().describe("optional note, truncated to 180 characters")
-    }
+    },
+    annotations: { title: "Add block", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }
   },
   writeTool((args) => addBlock(args))
 );
 server.registerTool(
   "update_block",
   {
+    title: "Update block",
     description: "Edit an existing task by id: change its label/note, move it, resize it, or switch it to a different kind of block by passing end / ongoing / weekly / monthly (at most one at a time). Fields left out are unchanged. Automatically runs check_pacing afterwards and includes any new violations in the result.",
     inputSchema: {
       id: external_exports.string().min(1).describe("task id, as returned by get_plan or add_block"),
@@ -22301,44 +22308,53 @@ server.registerTool(
       from: dateField.optional(),
       to: dateField.optional(),
       note: external_exports.string().max(180).optional()
-    }
+    },
+    annotations: { title: "Update block", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false }
   },
   writeTool((args) => updateBlock(args))
 );
 server.registerTool(
   "remove_block",
   {
+    title: "Remove block",
     description: "Delete one task (block) by id.",
-    inputSchema: { id: external_exports.string().min(1) }
+    inputSchema: { id: external_exports.string().min(1) },
+    annotations: { title: "Remove block", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false }
   },
   writeTool((args) => removeBlock(args))
 );
 server.registerTool(
   "remove_project",
   {
+    title: "Remove project",
     description: "Delete a project and all of its tasks. Identify it by name or id.",
-    inputSchema: { project: external_exports.string().min(1).describe("project name or id") }
+    inputSchema: { project: external_exports.string().min(1).describe("project name or id") },
+    annotations: { title: "Remove project", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false }
   },
   writeTool((args) => removeProject(args))
 );
 server.registerTool(
   "set_project_status",
   {
+    title: "Set project status",
     description: "Change a project's visibility: active (shown), draft (editor only), or off (hidden everywhere).",
     inputSchema: {
       project: external_exports.string().min(1).describe("project name or id"),
       status: statusField
-    }
+    },
+    annotations: { title: "Set project status", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false }
   },
   writeTool((args) => setProjectStatus(args))
 );
 server.registerTool(
   "check_pacing",
   {
+    title: "Check pacing",
     description: "Check the plan for pacing problems over the next `days` (default 14): more than 2 projects with fixed blocks on one weekday, fixed blocks touching a weekend, blocks outside the 2-10 day range, a project with more than 6 fixed blocks, more than 3 visible lanes on one day, blocks starting on a Friday, and overlapping blocks within a project. Read-only; returns each violation with a concrete suggestion.",
     inputSchema: {
       days: external_exports.number().int().min(1).max(365).optional().describe("how many days ahead to check (default 14)")
-    }
+    },
+    annotations: { title: "Check pacing", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
   },
   tool((args) => checkPacing(args))
 );
