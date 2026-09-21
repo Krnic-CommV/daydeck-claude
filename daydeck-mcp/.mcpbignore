@@ -1,5 +1,0 @@
-test/
-.git/
-dist/
-node_modules/esbuild/
-node_modules/@esbuild/

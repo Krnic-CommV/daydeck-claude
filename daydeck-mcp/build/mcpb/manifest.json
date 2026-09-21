@@ -1,0 +1,49 @@
+{
+  "manifest_version": "0.3",
+  "name": "daydeck-mcp",
+  "display_name": "Daydeck",
+  "version": "0.1.0",
+  "description": "Read and edit your Daydeck wallpaper plan — projects, phases, and rhythms.",
+  "long_description": "Daydeck is a macOS wallpaper that shows a calm macro timeline: one lane per project, a few big blocks (\"Project • phase\"), recurring rhythms, and ongoing bars. It is not a task manager. This extension lets Claude read the current plan, add or edit projects and blocks, and check the plan for pacing problems (overloaded days, blocks touching weekends, blocks that run too long or too short, and more) — all against the same data.json Daydeck itself reads and writes.",
+  "icon": "icon.png",
+  "author": {
+    "name": "Tomislav Krnic"
+  },
+  "homepage": "https://daydeck.krnic.be",
+  "support": "mailto:daydeck@krnic.be",
+  "privacy_policies": ["https://daydeck.krnic.be/privacy"],
+  "server": {
+    "type": "node",
+    "entry_point": "server.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server.js"]
+    }
+  },
+  "tools": [
+    { "name": "get_plan", "description": "Read today's date and every project with its tasks, optionally expanded into a day-by-day view." },
+    { "name": "add_project", "description": "Create a new project (lane); refuses duplicate names." },
+    { "name": "add_block", "description": "Add a fixed, ongoing, weekly, or monthly task to a project; creates the project if needed." },
+    { "name": "update_block", "description": "Edit an existing task by id, including switching its kind." },
+    { "name": "remove_block", "description": "Delete a task by id." },
+    { "name": "remove_project", "description": "Delete a project and all of its tasks." },
+    { "name": "set_project_status", "description": "Set a project to active, draft, or off." },
+    { "name": "check_pacing", "description": "Check the plan for pacing problems and get concrete suggestions." }
+  ],
+  "prompts": [
+    {
+      "name": "daydeck_weekly_planning",
+      "description": "Run a weekly planning conversation: review what changed, propose moves, apply them, and check pacing.",
+      "text": "You're running a weekly planning check-in for Daydeck, a calm macro timeline (NOT a task manager — no micro tasks, just a few big blocks per project). 1. Ask what changed since last week: new projects, finished phases, shifted deadlines. 2. Call get_plan (days: 14) to see the current plan and what's already on each day. 3. Propose concrete moves: new blocks, phase splits, status changes — always as \"Project • phase\" from a start date to an end date (or ongoing/weekly/monthly). 4. Apply the agreed changes with add_block / update_block / remove_block / set_project_status. 5. Run check_pacing (days: 14) and walk through any violations with the suggested fix. 6. Summarise in two short lists: \"what I feel good about this week\" and \"what I don't\"."
+    }
+  ],
+  "keywords": ["planning", "timeline", "wallpaper", "pacing", "macro tasks"],
+  "license": "MIT",
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin"],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}
