@@ -7,18 +7,38 @@
     "daydeck-mcp": "./server.js"
   },
   "main": "server.js",
+  "mcpName": "io.github.Krnic-CommV/daydeck",
   "files": [
     "server.js",
     "lib.js",
+    "SKILL.md",
     "README.md",
     "manifest.json",
-    "SKILL.md"
+    "icon.png",
+    "LICENSE"
   ],
   "scripts": {
     "test": "node --test test/",
     "bundle": "esbuild server.js --bundle --platform=node --format=esm --target=node18 --outfile=dist/server.bundle.mjs --banner:js=\"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);\"",
     "sync-plugin": "npm run bundle && cp dist/server.bundle.mjs ../claude-plugin/daydeck/mcp/server.js && cp SKILL.md ../claude-plugin/daydeck/mcp/SKILL.md"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Krnic-CommV/daydeck-claude.git",
+    "directory": "daydeck-mcp"
+  },
+  "homepage": "https://daydeck.krnic.be/claude",
+  "bugs": "https://github.com/Krnic-CommV/daydeck-claude/issues",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "daydeck",
+    "planning",
+    "timeline",
+    "wallpaper",
+    "pacing"
+  ],
   "engines": {
     "node": ">=18"
   },

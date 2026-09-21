@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Krnic-CommV/daydeck",
+  "description": "Read and edit your Daydeck wallpaper plan — projects, phases, and pacing checks.",
+  "repository": {
+    "url": "https://github.com/Krnic-CommV/daydeck-claude",
+    "source": "github",
+    "id": "1378780633",
+    "subfolder": "daydeck-mcp"
+  },
+  "version": "0.1.0",
+  "websiteUrl": "https://daydeck.krnic.be/claude",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "daydeck-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

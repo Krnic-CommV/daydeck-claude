@@ -11,6 +11,42 @@ rhythms — not to-do lists.
 
 ## Install
 
+### Install with npx
+
+No local checkout needed — `npx` fetches the package from npm each time.
+
+**Claude Desktop** — add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "daydeck": {
+      "command": "npx",
+      "args": ["-y", "daydeck-mcp"]
+    }
+  }
+}
+```
+
+**Claude Code**:
+
+```bash
+claude mcp add daydeck -- npx -y daydeck-mcp
+```
+
+**Cursor** — Settings → MCP → Add new MCP server, type `command`:
+
+```json
+{
+  "mcpServers": {
+    "daydeck": {
+      "command": "npx",
+      "args": ["-y", "daydeck-mcp"]
+    }
+  }
+}
+```
+
 ### Claude Desktop — double-click install
 
 Double-click `daydeck-mcp.mcpb` (built with `npx @anthropic-ai/mcpb pack .`
